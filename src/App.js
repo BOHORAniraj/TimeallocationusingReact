@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { Container, Row, Col, Alert, Button, includes } from "react-bootstrap";
+import { useState } from "react";
+import { Container, Row, Col, Alert, Button } from "react-bootstrap";
 import { AddTaskForm } from "./components/form/AddTaskForm";
 
 import { TaskList } from "./components/task-lists/TaskList";
@@ -13,7 +13,7 @@ const App = () => {
 	const [badTasks, setBadTasks] = useState([]);
 	const [error, setError] = useState(false);
 	const [taskToDelete, setTaskToDelete] = useState([])
-	// const [badtaskToDelete, setbadTaskToDelete] = useState([])
+	const [badTaskToDelete, setBadTaskToDelete] = useState([])
 
 	const taskHrs = tasks.reduce((subttl, itm) => subttl + +itm.hr, 0);
 	const badHours = badTasks.reduce((subttl, itm) => subttl + +itm.hr, 0);
@@ -52,6 +52,16 @@ const App = () => {
 			setTaskToDelete(filteredArg)
 		}
 	}
+	// const handleOnBadTaskClicked = e => {
+	// 	const{checked,value} = e.target;
+	// 	if(checked){
+	// 		setBadTaskToDelete([...badTaskToDelete, +value])
+
+	// 	} else {
+	// 		const filteredArg = taskToDelete.filter(itms => itms !== +value )
+	// 		setTaskToDelete(filteredArg)
+	// 	}
+	// }
 
 	const deleteFromTaskList = () => {
 		const newArg = tasks.filter((itms,i) => !taskToDelete.includes(i));
@@ -61,7 +71,11 @@ const App = () => {
 
 	const handleOnDeleteItems = () => {
 		deleteFromTaskList();
+		deleteFromBadTaskList();
 		}
+
+
+	
 
 
 	const markAsGoodList = i => {
@@ -70,6 +84,21 @@ const App = () => {
 		setTasks([...tasks, goodTask]);
 		setBadTasks(tempBadList);
 	};
+	
+	const handleOnBadTaskClicked = e => {
+		const {checked, value} = e.target;
+		if(checked) {
+		setBadTaskToDelete([...badTaskToDelete, +value]);
+		}else{
+			const filterArg = badTaskToDelete.filter(itms => itms !== +value )
+			setBadTaskToDelete(filterArg)
+		}
+	}	
+	const deleteFromBadTaskList = () => {
+		const newArgs = badTasks.filter((itm,i) => !badTaskToDelete.includes(i));
+		setBadTaskToDelete([]);
+		setBadTasks(newArgs);
+	}
 
 	return (
 		<div className="main">
@@ -93,7 +122,8 @@ const App = () => {
 				<hr />
 				<Row>
 					<Col>
-						<TaskList tasks={tasks} markAsBadList={markAsBadList}
+						<TaskList tasks={tasks}
+						 markAsBadList={markAsBadList}
 						taskToDelete={taskToDelete}
 						handleOnTaskClicked={handleOnTaskClicked}
 						 />
@@ -103,6 +133,10 @@ const App = () => {
 							badTasks={badTasks}
 							markAsGoodList={markAsGoodList}
 							badHours={badHours}
+							badTaskToDelete= {badTaskToDelete}
+							handleOnBadTaskClicked= {handleOnBadTaskClicked}
+							
+							
 						/>
 					</Col>
 				</Row>
