@@ -1,104 +1,47 @@
-import { useState } from "react";
-import { Container, Row, Col, Alert, Button } from "react-bootstrap";
+import { useState ,useEffect } from 'react';
+import { Container, Row, Col, Alert, Button,Spinner } from "react-bootstrap";
 import { AddTaskForm } from "./components/form/AddTaskForm";
 
 import { TaskList } from "./components/task-lists/TaskList";
 import { NotToDoList } from "./components/task-lists/NotToDoList";
+import {  switchTask } from './apis/taskApi'
+
+import { useDispatch, useSelector } from 'react-redux'
+import { fetchTaskLists } from './components/task-lists/taskAction'
+import { setTaskToDelete } from "./components/task-lists/taskSlice";
 
 import "./App.css";
 
+import { AlertMessage } from "./components/message/AlertMessage";
+import { isPending } from "@reduxjs/toolkit";
 const hrPwk = 168;
+const initialResponse = {
+	status: "",
+	message: "",
+}
+
 const App = () => {
-	const [tasks, setTasks] = useState([]);
-	const [badTasks, setBadTasks] = useState([]);
-	const [error, setError] = useState(false);
-	const [taskToDelete, setTaskToDelete] = useState([])
-	const [badTaskToDelete, setBadTaskToDelete] = useState([])
+	const dispatch = useDispatch();
+	const{ isPending, totalHrs, taskToDelete} = useSelector(state => state.task)
+	
 
-	const taskHrs = tasks.reduce((subttl, itm) => subttl + +itm.hr, 0);
-	const badHours = badTasks.reduce((subttl, itm) => subttl + +itm.hr, 0);
-	const totalHrs = taskHrs + badHours;
-
-	// useEffect(() => {
-	// 	console.log("from use effect");
-	// }, [error]);
-
-	const addTaskList = frmDt => {
-		if (hrPwk < totalHrs + +frmDt.hr) {
-			setError(true);
-		} else {
-			error && setError(false);
-			setTasks([...tasks, frmDt]);
-		}
-	};
-
-	const markAsBadList = i => {
+	useEffect(() => {
+		// fetch all the ticket and set in the task
 		
-		const tempTask = [...tasks];
-		const badTask = tempTask.splice(i, 1)[0];
+			dispatch(fetchTaskLists());
+		
+	},[]);
 	
-		setBadTasks([...badTasks, badTask]);
-		setTasks(tempTask);
-	};
 
-	//collect indices of the task list that needs too be deleted
 	const handleOnTaskClicked = e => {
-		const{checked,value} = e.target;
-		if(checked){
-			setTaskToDelete([...taskToDelete, +value])
-
-		} else {
-			const filteredArg = taskToDelete.filter(itms => itms !== +value )
-			setTaskToDelete(filteredArg)
-		}
-	}
-	// const handleOnBadTaskClicked = e => {
-	// 	const{checked,value} = e.target;
-	// 	if(checked){
-	// 		setBadTaskToDelete([...badTaskToDelete, +value])
-
-	// 	} else {
-	// 		const filteredArg = taskToDelete.filter(itms => itms !== +value )
-	// 		setTaskToDelete(filteredArg)
-	// 	}
-	// }
-
-	const deleteFromTaskList = () => {
-		const newArg = tasks.filter((itms,i) => !taskToDelete.includes(i));
-		setTaskToDelete([]);
-		setTasks(newArg);
+	dispatch(setTaskToDelete(e.target))
 	}
 
-	const handleOnDeleteItems = () => {
-		deleteFromTaskList();
-		deleteFromBadTaskList();
-		}
+
 
 
 	
 
-
-	const markAsGoodList = i => {
-		const tempBadList = [...badTasks];
-		const goodTask = tempBadList.splice(i, 1)[0];
-		setTasks([...tasks, goodTask]);
-		setBadTasks(tempBadList);
-	};
-	
-	const handleOnBadTaskClicked = e => {
-		const {checked, value} = e.target;
-		if(checked) {
-		setBadTaskToDelete([...badTaskToDelete, +value]);
-		}else{
-			const filterArg = badTaskToDelete.filter(itms => itms !== +value )
-			setBadTaskToDelete(filterArg)
-		}
-	}	
-	const deleteFromBadTaskList = () => {
-		const newArgs = badTasks.filter((itm,i) => !badTaskToDelete.includes(i));
-		setBadTaskToDelete([]);
-		setBadTasks(newArgs);
-	}
 
 	return (
 		<div className="main">
@@ -111,39 +54,24 @@ const App = () => {
 				<hr />
 				<Row>
 					<Col>
-						{error && (
-							<Alert variant="danger">
-								You don't have enough hours to allocate this task
-							</Alert>
-						)}
+						<AlertMessage />						
 					</Col>
 				</Row>
-				<AddTaskForm addTaskList={addTaskList} />
+				<AddTaskForm  />
 				<hr />
 				<Row>
 					<Col>
-						<TaskList tasks={tasks}
-						 markAsBadList={markAsBadList}
-						taskToDelete={taskToDelete}
-						handleOnTaskClicked={handleOnTaskClicked}
-						 />
+						{isPending && <spinner animation = "border" variant ="primary"/>}
+						<TaskList/>
 					</Col>
 					<Col>
-						<NotToDoList
-							badTasks={badTasks}
-							markAsGoodList={markAsGoodList}
-							badHours={badHours}
-							badTaskToDelete= {badTaskToDelete}
-							handleOnBadTaskClicked= {handleOnBadTaskClicked}
-							
-							
-						/>
+						<NotToDoList/>
 					</Col>
 				</Row>
 				<Row>
 					<Col>
 						<Button variant = "danger"
-						onClick={handleOnDeleteItems}
+						// onClick={()=>handleOnDeleteItems(taskToDelete)}
 						>
 							Delete
 						</Button>

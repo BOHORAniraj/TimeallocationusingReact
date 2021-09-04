@@ -1,7 +1,12 @@
 import React from "react";
 import { Table, Button, Alert } from "react-bootstrap";
+import { useSelector , useDispatch} from "react-redux";
+import { setTaskToDelete } from "./taskSlice";
+import { taskSwitcher } from "./taskAction";
 
-export const NotToDoList = ({ badTasks, markAsGoodList, badHours, badTaskToDelete,handleOnBadTaskClicked }) => {
+export const NotToDoList = ({ markAsGoodList , badHours}) => {
+	const dispatch = useDispatch()
+	const {badTaskLists , taskToDelete} = useSelector(state => state.task)
 	return (
 		<div>
 			<h2>BAD Task List</h2>
@@ -14,18 +19,18 @@ export const NotToDoList = ({ badTasks, markAsGoodList, badHours, badTaskToDelet
 					</tr>
 				</thead>
 				<tbody>
-					{badTasks.map((itm, i) => (
+					{badTaskLists.map((itm, i) => (
 						<tr key={i}>
 							<td>
 								<input type="checkbox" 	
-								defaultValue = {i}
-								checked = {badTaskToDelete.includes(i)}
-								onChange = {handleOnBadTaskClicked}
-								/> <label>{itm.task}</label>
+								defaultValue = {itm._id}
+								checked = {taskToDelete.includes(itm._id)}
+								onChange = {(e)=> dispatch(setTaskToDelete(e.target))}
+								/> { ""}<label>{itm.task}</label>
 							</td>
 							<td>{itm.hr}</td>
 							<td>
-								<Button onClick={() => markAsGoodList(i)}>Mark AS Good</Button>
+								<Button onClick={() => dispatch(taskSwitcher({id:itm._id ,todo:true}))}>Mark AS Good</Button>
 							</td>
 						</tr>
 					))}
